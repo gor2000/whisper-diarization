@@ -198,7 +198,7 @@ if language in punct_model_langs:
 
     words_list = list(map(lambda x: x["word"], wsm))
 
-    labled_words = punct_model.predict(words_list, chunk_size=230)
+    labled_words = punct_model.predict(words_list)
 
     ending_puncts = ".?!"
     model_puncts = ".,;:!?"
