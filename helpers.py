@@ -225,12 +225,8 @@ langs_to_iso = {
 def create_config(output_dir):
     DOMAIN_TYPE = "telephonic"  # Can be meeting, telephonic, or general based on domain type of the audio file
     CONFIG_LOCAL_DIRECTORY = "nemo_msdd_configs"
-    CONFIG_FILE_NAME = f"diar_infer_{DOMAIN_TYPE}.yaml"
+    CONFIG_FILE_NAME = f"diar_infer_minsait.yaml"
     MODEL_CONFIG_PATH = os.path.join(CONFIG_LOCAL_DIRECTORY, CONFIG_FILE_NAME)
-    if not os.path.exists(MODEL_CONFIG_PATH):
-        os.makedirs(CONFIG_LOCAL_DIRECTORY, exist_ok=True)
-        CONFIG_URL = f"https://raw.githubusercontent.com/NVIDIA/NeMo/main/examples/speaker_tasks/diarization/conf/inference/{CONFIG_FILE_NAME}"
-        MODEL_CONFIG_PATH = wget.download(CONFIG_URL, MODEL_CONFIG_PATH)
 
     config = OmegaConf.load(MODEL_CONFIG_PATH)
 
@@ -266,12 +262,6 @@ def create_config(output_dir):
 
     # Here, we use our in-house pretrained NeMo VAD model
     config.diarizer.vad.model_path = pretrained_vad
-    config.diarizer.vad.parameters.onset = 0.1
-    config.diarizer.vad.parameters.offset = 0.1
-    config.diarizer.vad.parameters.pad_offset = -0.05
-    config.diarizer.msdd_model.model_path = (
-        "diar_msdd_telephonic"  # Telephonic speaker diarization model
-    )
 
     return config
 
