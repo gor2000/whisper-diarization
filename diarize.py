@@ -192,7 +192,7 @@ with open(os.path.join(temp_path, "pred_rttms", "mono_file.rttm"), "r") as f:
         e = s + int(float(line_list[8]) * 1000)
         speaker_ts.append([s, e, int(line_list[11].split("_")[-1])])
 
-wsm = get_words_speaker_mapping(word_timestamps, speaker_ts, "start")
+wsm = get_words_speaker_mapping(word_timestamps, speaker_ts, "start", 100)
 
 if language in punct_model_langs:
     # restoring punctuation in the transcript to help realign the sentences
