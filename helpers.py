@@ -484,6 +484,26 @@ def write_srt(transcript, file):
         )
 
 
+def create_and_save_diarization_data(ssm, output_path):
+    diarization_data = []
+    for i, segment in enumerate(ssm):
+        start_time = segment['start_time'] / 1000  # Convert milliseconds to seconds
+        end_time = segment['end_time'] / 1000  # Convert milliseconds to seconds
+        speaker = segment['speaker']
+        entry = {
+            'speaker': speaker,
+            'start': start_time,
+            'end': end_time
+        }
+        diarization_data.append(entry)
+
+        # Save the diarization data to a JSON file
+    with open(output_path, 'w') as json_file:
+        json.dump(diarization_data, json_file, indent=4)
+
+    return diarization_data
+
+
 def find_numeral_symbol_tokens(tokenizer):
     numeral_symbol_tokens = [
         -1,
@@ -578,3 +598,35 @@ def process_language_arg(language: str, model_name: str):
             )
         language = "en"
     return language
+
+def save_to_json(data, output_path):
+    print(f"Saving JSON to {output_path}...")
+    try:
+        with open(output_path, 'w') as json_file:
+            json.dump(data, json_file, indent=4)
+    except Exception as e:
+        print(f"An error occurred while saving JSON: {e}")
+
+
+def cut_audio_segments(input_file, diarization_data, output_dir):
+    os.makedirs(output_dir, exist_ok=True)
+    print(f"Cutting audio segments for {input_file}...")
+
+    try:
+        for i, segment in enumerate(diarization_data):
+            start_time = segment['start']
+            end_time = segment['end']
+            speaker = segment['speaker']
+            speaker_dir = os.path.join(output_dir, speaker)
+            os.makedirs(speaker_dir, exist_ok=True)
+            output_file = os.path.join(speaker_dir, f"segment_{i + 1}_start_{start_time}_end_{end_time}.wav")
+
+            ffmpeg_extract_subclip(input_file, start_time, end_time, targetname=output_file)
+            # logging.info(f"Segment {i + 1} from {start_time} to {end_time} seconds for {speaker} has been saved to {output_file}.")
+
+        # Save the diarization data in the main output folder
+        json_output_path = os.path.join(output_dir, 'diarization.json')
+        save_to_json(diarization_data, json_output_path)
+
+    except Exception as e:
+        print(f"An error occurred during audio cutting: {e}")

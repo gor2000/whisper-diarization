@@ -225,11 +225,35 @@ else:
 
 wsm = get_realigned_ws_mapping_with_punctuation(wsm)
 ssm = get_sentences_speaker_mapping(wsm, speaker_ts)
+import os
 
-with open(f"{os.path.splitext(args.audio)[0]}.txt", "w", encoding="utf-8-sig") as f:
+# Define the root output directory and the specific directory for the current audio file
+root_output_dir = "/home/jgarciam/documents/prisa/raw_audios/audios_divided"
+audio_base_name = os.path.splitext(os.path.basename(args.audio))[0]
+specific_output_dir = os.path.join(root_output_dir, audio_base_name)
+
+# Ensure the specific output directory exists
+os.makedirs(specific_output_dir, exist_ok=True)
+
+# Define the paths for the output files
+output_text_file = os.path.join(specific_output_dir, f"{audio_base_name}.txt")
+output_srt_file = os.path.join(specific_output_dir, f"{audio_base_name}.srt")
+output_json_file = os.path.join(specific_output_dir, f"{audio_base_name}.json")
+output_diarization_file = output_json_file  # Reuse the path for diarization data
+
+# Write the transcript to a text file
+with open(output_text_file, "w", encoding="utf-8-sig") as f:
     get_speaker_aware_transcript(ssm, f)
 
-with open(f"{os.path.splitext(args.audio)[0]}.srt", "w", encoding="utf-8-sig") as srt:
+# Write the SRT file
+with open(output_srt_file, "w", encoding="utf-8-sig") as srt:
     write_srt(ssm, srt)
 
+# Create and save the diarization data to a JSON file
+diarization_data = create_and_save_diarization_data(ssm, output_diarization_file)
+
+# Cut the audio segments
+cut_audio_segments(vocal_target, diarization_data, specific_output_dir)
+
+# Clean up temporary files
 cleanup(temp_path)
