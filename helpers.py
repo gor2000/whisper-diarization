@@ -262,7 +262,7 @@ def create_config(output_dir):
 
     # Here, we use our in-house pretrained NeMo VAD model
     config.diarizer.vad.model_path = pretrained_vad
-
+    print(config)
     return config
 
 
