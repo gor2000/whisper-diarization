@@ -266,8 +266,8 @@ def create_config(output_dir):
 
     # Here, we use our in-house pretrained NeMo VAD model
     config.diarizer.vad.model_path = pretrained_vad
-    config.diarizer.vad.parameters.onset = 0.8
-    config.diarizer.vad.parameters.offset = 0.6
+    config.diarizer.vad.parameters.onset = 0.1
+    config.diarizer.vad.parameters.offset = 0.1
     config.diarizer.vad.parameters.pad_offset = -0.05
     config.diarizer.msdd_model.model_path = (
         "diar_msdd_telephonic"  # Telephonic speaker diarization model
