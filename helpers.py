@@ -9,6 +9,9 @@ from omegaconf import OmegaConf
 from whisperx.alignment import DEFAULT_ALIGN_MODELS_HF, DEFAULT_ALIGN_MODELS_TORCH
 from whisperx.utils import LANGUAGES, TO_LANGUAGE_CODE
 
+from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
+import subprocess as sp
+
 punct_model_langs = [
     "en",
     "fr",
@@ -599,6 +602,7 @@ def process_language_arg(language: str, model_name: str):
         language = "en"
     return language
 
+
 def save_to_json(data, output_path):
     print(f"Saving JSON to {output_path}...")
     try:
@@ -622,7 +626,7 @@ def cut_audio_segments(input_file, diarization_data, output_dir):
             output_file = os.path.join(speaker_dir, f"segment_{i + 1}_start_{start_time}_end_{end_time}.wav")
 
             ffmpeg_extract_subclip(input_file, start_time, end_time, targetname=output_file)
-            # logging.info(f"Segment {i + 1} from {start_time} to {end_time} seconds for {speaker} has been saved to {output_file}.")
+            print(f"Segment {i + 1} from {start_time} to {end_time} seconds for {speaker} has been saved to {output_file}.")
 
         # Save the diarization data in the main output folder
         json_output_path = os.path.join(output_dir, 'diarization.json')
