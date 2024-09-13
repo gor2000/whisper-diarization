@@ -594,32 +594,27 @@ def process_language_arg(language: str, model_name: str):
     return language
 
 
-def save_to_json(data, output_path):
-    print(f"Saving JSON to {output_path}...")
-    try:
-        with open(output_path, 'w') as json_file:
-            json.dump(data, json_file, indent=4)
-    except Exception as e:
-        print(f"An error occurred while saving JSON: {e}")
+def cut_audio_segments(input_file, diarization_data, output_dir, audio_name, audio_output_dir, specific_output_dir):
+    def save_to_json(data, output_path):
+        print(f"Saving JSON to {output_path}...")
+        try:
+            with open(output_path, 'w') as json_file:
+                json.dump(data, json_file, indent=4)
+        except Exception as e:
+            print(f"An error occurred while saving JSON: {e}")
 
-
-def cut_audio_segments(input_file, diarization_data, output_dir, audio_name):
-    def save_to_json(data, file_path):
-        with open(file_path, 'w') as f:
-            json.dump(data, f, indent=4)
-
-    def update_metadata(metadata, file_name, segment_name, duration, output_dir):
+    def update_metadata(metadata, file_name, segment_name, duration):
         if file_name not in metadata:
             metadata[file_name] = {}
-        metadata[file_name][segment_name] = duration
-        metadata_path = os.path.join(output_dir, 'metadata.json')
+        metadata[file_name][segment_name] = round(duration, 2)
+        metadata_path = os.path.join(audio_output_dir, 'metadata_audios_raw_divided.json')
         save_to_json(metadata, metadata_path)
 
     os.makedirs(output_dir, exist_ok=True)
     print(f"Cutting audio segments for {input_file}...")
 
     metadata = {}
-    metadata_path = os.path.join(output_dir, 'metadata_audios_raw_divided.json')
+    metadata_path = os.path.join(audio_output_dir, 'metadata_audios_raw_divided.json')
     if os.path.exists(metadata_path):
         with open(metadata_path, 'r') as f:
             metadata = json.load(f)
@@ -636,9 +631,9 @@ def cut_audio_segments(input_file, diarization_data, output_dir, audio_name):
                 ffmpeg_extract_subclip(input_file, start_time, end_time, targetname=output_file)
                 print(f"Part {i + 1} from {start_time} to {end_time} seconds has been saved to {output_file}.")
 
-                update_metadata(metadata, audio_name, segment_name, duration, output_dir)
+                update_metadata(metadata, audio_name, segment_name, duration)
 
-        json_output_path = os.path.join(output_dir, 'diarization.json')
+        json_output_path = os.path.join(specific_output_dir, 'diarization.json')
         save_to_json(diarization_data, json_output_path)
     except Exception as e:
         print(f"An error occurred during audio cutting: {e}")

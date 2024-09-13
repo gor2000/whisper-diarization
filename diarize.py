@@ -279,7 +279,8 @@ try:
         diarization_data = create_and_save_diarization_data(ssm, output_diarization_file)
 
         # Cut the audio segments
-        cut_audio_segments(vocal_target, diarization_data, output_audio, audio_base_name)
+        cut_audio_segments(vocal_target, diarization_data, output_audio, audio_base_name,
+                           audio_output_dir, specific_output_dir)
 
         # Clean up temporary files
         cleanup(temp_path)
