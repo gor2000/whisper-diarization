@@ -100,6 +100,7 @@ try:
     audio_output_dir = os.getenv("AUDIO_OUTPUT_DIR")
     audio_files = os.getenv('AUDIO_FILES')
     input_audios = os.getenv('INPUT_AUDIOS')
+    audio_offset = os.getenv('AUDIO_OFFSET')
 
     extended_audio_files = expand_range(audio_files)
 
@@ -214,7 +215,7 @@ try:
                 e = s + int(float(line_list[8]) * 1000)
                 speaker_ts.append([s, e, int(line_list[11].split("_")[-1])])
 
-        wsm = get_words_speaker_mapping(word_timestamps, speaker_ts, "start", 100)
+        wsm = get_words_speaker_mapping(word_timestamps, speaker_ts, "start", int(audio_offset))
 
         if language in punct_model_langs:
             # restoring punctuation in the transcript to help realign the sentences
