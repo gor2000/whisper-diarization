@@ -32,6 +32,10 @@ from helpers import (
 )
 from transcription_helpers import transcribe_batched
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 mtypes = {"cpu": "int8", "cuda": "float16"}
 
 # Initialize parser
@@ -227,12 +231,13 @@ else:
 
 wsm = get_realigned_ws_mapping_with_punctuation(wsm)
 ssm = get_sentences_speaker_mapping(wsm, speaker_ts)
-import os
 
 # Define the root output directory and the specific directory for the current audio file
-root_output_dir = "/home/jgarciam/documents/prisa/raw_audios/audios_divided"
+root_output_dir = os.getenv("ROOT_OUTPUT_DIR")
 audio_base_name = os.path.splitext(os.path.basename(args.audio))[0]
 specific_output_dir = os.path.join(root_output_dir, audio_base_name)
+audio_output_dir = os.getenv("AUDIO_OUTPUT_DIR")
+output_audio = os.path.join(audio_output_dir, audio_base_name)
 
 # Ensure the specific output directory exists
 os.makedirs(specific_output_dir, exist_ok=True)
@@ -255,7 +260,7 @@ with open(output_srt_file, "w", encoding="utf-8-sig") as srt:
 diarization_data = create_and_save_diarization_data(ssm, output_diarization_file)
 
 # Cut the audio segments
-cut_audio_segments(vocal_target, diarization_data, specific_output_dir)
+cut_audio_segments(vocal_target, diarization_data, output_audio, audio_base_name)
 
 # Clean up temporary files
 cleanup(temp_path)

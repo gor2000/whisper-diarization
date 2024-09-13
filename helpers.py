@@ -602,12 +602,9 @@ def save_to_json(data, output_path):
         print(f"An error occurred while saving JSON: {e}")
 
 
-def cut_audio_segments(input_file, diarization_data, output_dir):
+def cut_audio_segments(input_file, diarization_data, output_dir, audio_name):
     os.makedirs(output_dir, exist_ok=True)
     print(f"Cutting audio segments for {input_file}...")
-
-    # Extract the base name of the input file without extension
-    base_name = os.path.splitext(os.path.basename(input_file))[0]
 
     try:
         for i, segment in enumerate(diarization_data):
@@ -615,20 +612,13 @@ def cut_audio_segments(input_file, diarization_data, output_dir):
             end_time = segment['end']
             duration = end_time - start_time
 
-            # Only save segments longer than 3 seconds
             if duration > 3:
-                speaker = segment['speaker']
-                speaker_dir = os.path.join(output_dir, speaker)
-                os.makedirs(speaker_dir, exist_ok=True)
-
-                # Change the naming convention
-                output_file = os.path.join(speaker_dir, f"{base_name}_part_{i + 1}.wav")
+                output_file = os.path.join(output_dir, f"{audio_name}_part_{i + 1}.wav")
                 ffmpeg_extract_subclip(input_file, start_time, end_time, targetname=output_file)
-                print(
-                    f"Part {i + 1} from {start_time} to {end_time} seconds for {speaker} has been saved to {output_file}.")
+                print(f"Part {i + 1} from {start_time} to {end_time} seconds has been saved to {output_file}.")
 
-                # Save the diarization data in the main output folder
         json_output_path = os.path.join(output_dir, 'diarization.json')
         save_to_json(diarization_data, json_output_path)
     except Exception as e:
         print(f"An error occurred during audio cutting: {e}")
+
