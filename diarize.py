@@ -94,6 +94,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 try:
+
     # Define the root output directory and the specific directory for the current audio file
     root_output_dir = os.getenv("ROOT_OUTPUT_DIR")
     audio_output_dir = os.getenv("AUDIO_OUTPUT_DIR")
@@ -101,6 +102,13 @@ try:
     input_audios = os.getenv('INPUT_AUDIOS')
 
     extended_audio_files = expand_range(audio_files)
+
+    confirmation = input(
+        f"You are going to divide audio for {extended_audio_files}. Is this correct? (yes/no): ").strip().lower()
+    if confirmation != 'yes':
+        print("Operation cancelled.")
+        logging.info("Operation cancelled by user.")
+        exit(0)
 
     for audio_file in extended_audio_files:
 
