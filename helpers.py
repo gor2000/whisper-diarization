@@ -604,8 +604,25 @@ def save_to_json(data, output_path):
 
 
 def cut_audio_segments(input_file, diarization_data, output_dir, audio_name):
+    def save_to_json(data, file_path):
+        with open(file_path, 'w') as f:
+            json.dump(data, f, indent=4)
+
+    def update_metadata(metadata, file_name, segment_name, duration, output_dir):
+        if file_name not in metadata:
+            metadata[file_name] = {}
+        metadata[file_name][segment_name] = duration
+        metadata_path = os.path.join(output_dir, 'metadata.json')
+        save_to_json(metadata, metadata_path)
+
     os.makedirs(output_dir, exist_ok=True)
     print(f"Cutting audio segments for {input_file}...")
+
+    metadata = {}
+    metadata_path = os.path.join(output_dir, 'metadata_audios_raw_divided.json')
+    if os.path.exists(metadata_path):
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
 
     try:
         for i, segment in enumerate(diarization_data):
@@ -614,9 +631,12 @@ def cut_audio_segments(input_file, diarization_data, output_dir, audio_name):
             duration = end_time - start_time
 
             if duration > 3:
-                output_file = os.path.join(output_dir, f"{audio_name}_part_{i + 1}.wav")
+                segment_name = f"{audio_name}_part_{i + 1}.wav"
+                output_file = os.path.join(output_dir, segment_name)
                 ffmpeg_extract_subclip(input_file, start_time, end_time, targetname=output_file)
                 print(f"Part {i + 1} from {start_time} to {end_time} seconds has been saved to {output_file}.")
+
+                update_metadata(metadata, audio_name, segment_name, duration, output_dir)
 
         json_output_path = os.path.join(output_dir, 'diarization.json')
         save_to_json(diarization_data, json_output_path)
