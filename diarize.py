@@ -115,7 +115,10 @@ try:
 
         audio_path = os.path.join(input_audios, f'{audio_file}.wav')
         print(f"--- Audio file {audio_path} ---\n")
-
+        # Check if audio folder already in output
+        if os.path.exists(os.path.join(audio_output_dir, audio_file)):
+            print(f"Skipping audio {audio_path}. Already exists.")
+            continue
         if args.stemming:
             # Isolate vocals from the rest of the audio
 
