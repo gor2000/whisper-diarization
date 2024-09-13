@@ -28,7 +28,8 @@ from helpers import (
     whisper_langs,
     write_srt,
     create_and_save_diarization_data,
-    cut_audio_segments
+    cut_audio_segments,
+    expand_range
 )
 from transcription_helpers import transcribe_batched
 
@@ -40,9 +41,9 @@ mtypes = {"cpu": "int8", "cuda": "float16"}
 
 # Initialize parser
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "-a", "--audio", help="name of the target audio file", required=True
-)
+# parser.add_argument(
+#     "-a", "--audio", help="name of the target audio file", required=True
+# )
 parser.add_argument(
     "--no-stem",
     action="store_false",
@@ -234,33 +235,41 @@ ssm = get_sentences_speaker_mapping(wsm, speaker_ts)
 
 # Define the root output directory and the specific directory for the current audio file
 root_output_dir = os.getenv("ROOT_OUTPUT_DIR")
-audio_base_name = os.path.splitext(os.path.basename(args.audio))[0]
-specific_output_dir = os.path.join(root_output_dir, audio_base_name)
 audio_output_dir = os.getenv("AUDIO_OUTPUT_DIR")
-output_audio = os.path.join(audio_output_dir, audio_base_name)
+audio_files = os.getenv('AUDIO_FILES')
+input_audios = os.getenv('INPUT_AUDIOS')
 
-# Ensure the specific output directory exists
-os.makedirs(specific_output_dir, exist_ok=True)
+extended_audio_files = expand_range(audio_files)
 
-# Define the paths for the output files
-output_text_file = os.path.join(specific_output_dir, f"{audio_base_name}.txt")
-output_srt_file = os.path.join(specific_output_dir, f"{audio_base_name}.srt")
-output_json_file = os.path.join(specific_output_dir, f"{audio_base_name}.json")
-output_diarization_file = output_json_file  # Reuse the path for diarization data
+for audio_file in extended_audio_files:
+    audio_path = os.path.join(input_audios, f'{audio_file}.wav')
+    print(f"Diarizing audio file {audio_path}")
+    audio_base_name = os.path.splitext(os.path.basename(args.audio))[0]
+    specific_output_dir = os.path.join(root_output_dir, audio_base_name)
+    output_audio = os.path.join(audio_output_dir, audio_base_name)
 
-# Write the transcript to a text file
-with open(output_text_file, "w", encoding="utf-8-sig") as f:
-    get_speaker_aware_transcript(ssm, f)
+    # Ensure the specific output directory exists
+    os.makedirs(specific_output_dir, exist_ok=True)
 
-# Write the SRT file
-with open(output_srt_file, "w", encoding="utf-8-sig") as srt:
-    write_srt(ssm, srt)
+    # Define the paths for the output files
+    output_text_file = os.path.join(specific_output_dir, f"{audio_base_name}.txt")
+    output_srt_file = os.path.join(specific_output_dir, f"{audio_base_name}.srt")
+    output_json_file = os.path.join(specific_output_dir, f"{audio_base_name}.json")
+    output_diarization_file = output_json_file  # Reuse the path for diarization data
 
-# Create and save the diarization data to a JSON file
-diarization_data = create_and_save_diarization_data(ssm, output_diarization_file)
+    # Write the transcript to a text file
+    with open(output_text_file, "w", encoding="utf-8-sig") as f:
+        get_speaker_aware_transcript(ssm, f)
 
-# Cut the audio segments
-cut_audio_segments(vocal_target, diarization_data, output_audio, audio_base_name)
+    # Write the SRT file
+    with open(output_srt_file, "w", encoding="utf-8-sig") as srt:
+        write_srt(ssm, srt)
 
-# Clean up temporary files
-cleanup(temp_path)
+    # Create and save the diarization data to a JSON file
+    diarization_data = create_and_save_diarization_data(ssm, output_diarization_file)
+
+    # Cut the audio segments
+    cut_audio_segments(vocal_target, diarization_data, output_audio, audio_base_name)
+
+    # Clean up temporary files
+    cleanup(temp_path)

@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import shutil
+import re
 
 import nltk
 import wget
@@ -622,3 +623,30 @@ def cut_audio_segments(input_file, diarization_data, output_dir, audio_name):
     except Exception as e:
         print(f"An error occurred during audio cutting: {e}")
 
+
+def expand_range(voice_arg):
+    """
+    Expands range syntax in the form of H00{1..5} or H150..H160 into a list of voice names.
+    Supports multiple ranges in the same argument, separated by commas.
+    """
+    expanded_voices = []
+    for part in voice_arg.split(','):
+        match_curly = re.match(r'(.*)\{(\d+)\.\.(\d+)}(.*)', part)
+        match_dots = re.match(r'(.*?)(\d+)\.\.(.*?)(\d+)', part)
+
+        if match_curly:
+            prefix, start, end, suffix = match_curly.groups()
+            start, end = int(start), int(end)
+            num_digits = len(match_curly.group(2))  # Use the length of the matched start group
+            expanded_voices.extend([f"{prefix}{i:0{num_digits}d}{suffix}" for i in range(start, end + 1)])
+        elif match_dots:
+            prefix1, start, prefix2, end = match_dots.groups()
+            start, end = int(start), int(end)
+            if prefix1 != prefix2:
+                raise ValueError("Prefixes do not match: cannot expand range")
+            num_digits = len(match_dots.group(2))  # Use the length of the matched start group
+            expanded_voices.extend([f"{prefix1}{i:0{num_digits}d}" for i in range(start, end + 1)])
+        else:
+            expanded_voices.append(part)
+
+    return expanded_voices
